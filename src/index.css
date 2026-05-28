@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  
+  --color-main-bg: var(--bg-primary);
+  --color-card-bg: var(--bg-card);
+  --color-sidebar-bg: var(--bg-sidebar);
+  
+  --color-text-body: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-text-title: var(--text-header);
+  
+  --color-border-theme: var(--border-color);
+  
+  --color-accent-main: var(--accent-color);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-light: var(--accent-light);
+  --color-accent-text: var(--accent-text);
+  
+  --radius-xl: var(--radius-card);
+  --radius-2xl: var(--radius-card);
+  --radius-3xl: var(--radius-card);
+  --radius-lg: var(--radius-btn);
+  --radius-md: var(--radius-btn);
+  
+  --shadow-sm: var(--shadow-sm-val);
+  --shadow-md: var(--shadow-md-val);
+}
+
+:root {
+  --bg-primary: #F5F5F7; /* Apple System Gray */
+  --bg-card: #FFFFFF;
+  --bg-sidebar: rgba(245, 245, 247, 0.75);
+  --text-main: #1D1D1F;
+  --text-muted: #86868B;
+  --text-header: #1D1D1F;
+  --border-color: rgba(0, 0, 0, 0.06);
+  --accent-color: #0071E3; /* Apple Blue */
+  --accent-hover: #0077ED;
+  --accent-bg: #82B1FF;
+  --accent-light: rgba(0, 113, 227, 0.1);
+  --accent-text: #0071E3;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --radius-card: 20px;
+  --radius-btn: 10px;
+  --shadow-sm-val: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md-val: 0 10px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.theme-cupertino-light {
+  --bg-primary: #F5F5F7;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: rgba(245, 245, 247, 0.72);
+  --text-main: #1D1D1F;
+  --text-muted: #86868B;
+  --text-header: #1D1D1F;
+  --border-color: rgba(0, 0, 0, 0.08); /* High quality subtle border */
+  --accent-color: #0071E3;
+  --accent-hover: #0077ED;
+  --accent-bg: #82B1FF;
+  --accent-light: rgba(0, 113, 227, 0.1);
+  --accent-text: #0071E3;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --radius-card: 22px;
+  --radius-btn: 10px;
+  --shadow-sm-val: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md-val: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.theme-cupertino-dark {
+  --bg-primary: #000000;
+  --bg-card: #1C1C1E;
+  --bg-sidebar: rgba(30, 30, 30, 0.65);
+  --text-main: #F5F5F7;
+  --text-muted: #86868B; /* Dark gray for muted elements */
+  --text-header: #FFFFFF;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --accent-color: #0A84FF; /* Apple Dark Mode Blue */
+  --accent-hover: #2997FF;
+  --accent-bg: #0A84FF;
+  --accent-light: rgba(10, 132, 255, 0.15);
+  --accent-text: #0A84FF;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --radius-card: 22px;
+  --radius-btn: 10px;
+  --shadow-sm-val: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md-val: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.theme-titanium {
+  --bg-primary: #212124;
+  --bg-card: #2B2C30;
+  --bg-sidebar: rgba(43, 44, 48, 0.7);
+  --text-main: #E3E3E3;
+  --text-muted: #8E8E93;
+  --text-header: #F2F2F2;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --accent-color: #D4C3A3; /* Titanium Natural */
+  --accent-hover: #E3D2B2;
+  --accent-bg: #807661;
+  --accent-light: rgba(212, 195, 163, 0.1);
+  --accent-text: #D4C3A3;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --radius-card: 16px;
+  --radius-btn: 8px;
+  --shadow-sm-val: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md-val: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.theme-editorial-sepia {
+  /* Apple Books inspired sepia */
+  --bg-primary: #F4F0E6;
+  --bg-card: #FFFBF0;
+  --bg-sidebar: rgba(244, 240, 230, 0.85);
+  --text-main: #4a3d2e;
+  --text-muted: #806b54;
+  --text-header: #211910;
+  --border-color: #E6D8C3;
+  --accent-color: #D35400;
+  --accent-hover: #E67E22;
+  --accent-bg: #E67E22;
+  --accent-light: rgba(211, 84, 0, 0.1);
+  --accent-text: #D35400;
+  --font-body: "Playfair Display", Georgia, serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --radius-card: 12px;
+  --radius-btn: 6px;
+  --shadow-sm-val: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md-val: 0 8px 16px -1px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Papyrus/Notebook Paper Canvases linked to variables */
+.onenote-grid {
+  background-size: 24px 24px !important;
+  background-image: 
+    linear-gradient(to right, var(--border-theme) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-theme) 1px, transparent 1px) !important;
+  background-color: var(--color-card-bg) !important;
+}
+
+.paper-blank {
+  background-color: var(--color-card-bg) !important;
+  background-image: none !important;
+}
+
+.paper-ruled {
+  background-color: var(--color-card-bg) !important;
+  background-image: 
+    /* Ruled lines */
+    linear-gradient(to bottom, transparent 27px, rgba(99, 102, 241, 0.1) 28px),
+    /* Left border margin */
+    linear-gradient(to right, transparent 58px, rgba(239, 68, 68, 0.15) 59px, transparent 60px) !important;
+  background-size: 100% 28px, 100% 100% !important;
+}
+
+.paper-grid {
+  background-color: var(--color-card-bg) !important;
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+}
+
+.paper-dotted {
+  background-color: var(--color-card-bg) !important;
+  background-image: radial-gradient(rgba(100, 116, 139, 0.15) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+}
+
+/* -------------------------------------------------------------
+ * GEOMETRY OVERRIDE MODIFIER SYSTEMS (DESIGN LAB EXTRAS)
+ * ----------------------------------------------------------- */
+
+/* 1. Curve Scales */
+.radius-brutalist {
+  --radius-card: 0px !important;
+  --radius-btn: 0px !important;
+  --radius-xl: 0px !important;
+  --radius-2xl: 0px !important;
+  --radius-3xl: 0px !important;
+  --radius-lg: 0px !important;
+  --radius-md: 0px !important;
+}
+
+.radius-pill {
+  --radius-card: 28px !important;
+  --radius-btn: 14px !important;
+  --radius-xl: 28px !important;
+  --radius-2xl: 28px !important;
+  --radius-3xl: 28px !important;
+  --radius-lg: 14px !important;
+  --radius-md: 14px !important;
+}
+
+/* 2. Text Density Scales */
+.density-compact {
+  font-size: 13px !important;
+}
+.density-compact p, 
+.density-compact span, 
+.density-compact th, 
+.density-compact td, 
+.density-compact button {
+  font-size: 12px !important;
+}
+.density-compact h1 { font-size: 1.5rem !important; }
+.density-compact h2 { font-size: 1.2rem !important; }
+.density-compact h3 { font-size: 1rem !important; }
+
+.density-cozy {
+  font-size: 16px !important;
+}
+.density-cozy p, 
+.density-cozy span, 
+.density-cozy th, 
+.density-cozy td, 
+.density-cozy button {
+  font-size: 14.5px !important;
+}
+.density-cozy h1 { font-size: 2.25rem !important; }
+.density-cozy h2 { font-size: 1.75rem !important; }
+.density-cozy h3 { font-size: 1.4rem !important; }
+
+/* 3. Glassmorphism Blurs */
+.glass-backdrop-blur {
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+}
+.glass-backdrop-blur #sidebar-container,
+.glass-backdrop-blur .bg-sidebar-glass {
+  background-color: var(--bg-sidebar) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Custom Scrollbars for Calendar Lists and Cards */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+
+
+

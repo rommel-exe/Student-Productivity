@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Primitives
+    function isValidId(id) { 
+        return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    
+    // User validation blueprint
+    function isValidUser(data) {
+        return data.keys().hasAll(['uid', 'email', 'createdAt', 'updatedAt']) 
+            && data.keys().size() == 4
+            && data.uid is string && data.uid.size() <= 128 && data.uid == request.auth.uid
+            && data.email is string && data.email.size() <= 200
+            && data.createdAt is timestamp
+            && data.updatedAt is timestamp;
+    }
+    
+    match /users/{userId} {
+        match /workspace/{docId} {
+            // Protect against size abuse DoS (max 1MB payload of stringified JSON)
+            allow read: if isSignedIn() && request.auth.uid == userId;
+            allow write: if isSignedIn() && request.auth.uid == userId
+                        && incoming().keys().hasOnly(['data', 'updatedAt'])
+                        && incoming().keys().hasAll(['data', 'updatedAt'])
+                        && incoming().data is string
+                        && incoming().data.size() < 1000 * 1000 // roughly 1MB
+                        && incoming().updatedAt is timestamp;
+        }
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        
+        allow create: if isSignedIn() 
+            && isValidId(userId)
+            && userId == request.auth.uid
+            && isValidUser(incoming())
+            && incoming().createdAt == request.time
+            && incoming().updatedAt == request.time;
+            
+        allow update: if (
+            isSignedIn()
+            && isValidId(userId)
+            && userId == request.auth.uid
+            && isValidUser(incoming())
+            && incoming().createdAt == existing().createdAt
+            && incoming().uid == existing().uid
+            && incoming().updatedAt == request.time
+            && (
+              incoming().diff(existing()).affectedKeys().hasOnly(['updatedAt']) ||
+              incoming().diff(existing()).affectedKeys().hasOnly(['updatedAt', 'email'])
+            )
+        );
+    }
+  }
+}

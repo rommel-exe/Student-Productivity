@@ -1,0 +1,6 @@
+{
+  "name": "Student Productivity Workspace",
+  "description": "Unified student workspace pairing hierarchical notes with backlinks, an interactive connection graph, and dynamic task management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
