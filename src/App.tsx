@@ -32,18 +32,34 @@ export default function App() {
   const [updateError, setUpdateError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     const checkAppUpdates = async () => {
       try {
         const isTauri = typeof window !== "undefined" && (window as any).__TAURI__;
-        if (isTauri) {
-          const { checkUpdate } = await import("@tauri-apps/api/updater");
-          const { shouldUpdate, manifest } = await checkUpdate();
-          if (shouldUpdate && manifest) {
-            setUpdateInfo({
-              available: true,
-              version: manifest.version || "unknown",
-              body: manifest.body || "A new update is available with outstanding improvements and features.",
-            });
+        if (!isTauri) return;
+
+        const { checkUpdate } = await import("@tauri-apps/api/updater");
+        const { shouldUpdate, manifest } = await checkUpdate();
+        if (shouldUpdate && manifest && active) {
+          setUpdateInfo({
+            available: true,
+            version: manifest.version || "unknown",
+            body: manifest.body || "A new update is available with outstanding improvements and features.",
+          });
+          setIsUpdating(true);
+          
+          try {
+            const { installUpdate } = await import("@tauri-apps/api/updater");
+            const { relaunch } = await import("@tauri-apps/api/process");
+            
+            await installUpdate();
+            await relaunch();
+          } catch (err: any) {
+            console.error("Auto-Updater installation failed: ", err);
+            if (active) {
+              setUpdateError(err.message || String(err));
+              setIsUpdating(false);
+            }
           }
         }
       } catch (err: any) {
@@ -51,10 +67,13 @@ export default function App() {
       }
     };
 
-    // Fast check on mount or when user changes
-    const timer = setTimeout(checkAppUpdates, 2000);
-    return () => clearTimeout(timer);
-  }, [user]);
+    // Fast check on mount
+    const timer = setTimeout(checkAppUpdates, 1500);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, []);
 
   const handlePerformUpdate = async () => {
     setIsUpdating(true);
@@ -551,31 +570,35 @@ export default function App() {
 
       {/* Dynamic Tauri Auto-Updater UI overlay */}
       {updateInfo && updateInfo.available && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in" id="updater-modal-overlay">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in" id="updater-modal-overlay">
           <div className="max-w-md w-full bg-card-bg border border-border-theme p-6 rounded-2xl shadow-2xl flex flex-col relative" id="updater-dialog-container">
-            <button 
-              onClick={() => setUpdateInfo(null)}
-              className="absolute top-4 right-4 text-text-muted hover:text-text-body transition cursor-pointer"
-              disabled={isUpdating}
-              title="Close update dialog"
-            >
-              <X size={18} />
-            </button>
+            {(!isUpdating || updateError) && (
+              <button 
+                onClick={() => setUpdateInfo(null)}
+                className="absolute top-4 right-4 text-text-muted hover:text-text-body transition cursor-pointer"
+                title="Close update dialog"
+              >
+                <X size={18} />
+              </button>
+            )}
             
             <div className="flex items-start gap-4 mb-4">
               <div className="w-12 h-12 rounded-xl bg-accent-main/10 text-accent-main flex items-center justify-center shrink-0">
-                <Sparkles size={24} className="animate-pulse" />
+                <Sparkles size={24} className="animate-pulse text-accent-main" />
               </div>
-              <div>
+              <div className="flex-1">
                 <span className="text-xs font-semibold px-2.5 py-1 bg-accent-main/10 text-accent-main rounded-full inline-block mb-1">
-                  Update Available v{updateInfo.version}
+                  System Update
                 </span>
-                <h3 className="text-lg font-bold text-text-title font-display">New Version Ready!</h3>
+                <h3 className="text-lg font-bold text-text-title font-display">Installing Update v{updateInfo.version}</h3>
               </div>
             </div>
 
-            <p className="text-sm text-text-muted mb-4 leading-relaxed bg-main-bg/50 p-3 rounded-lg border border-border-theme/40 font-mono text-[11px] max-h-32 overflow-y-auto">
-              {updateInfo.body}
+            <p className="text-sm text-text-muted mb-4 leading-relaxed bg-main-bg/50 p-3 rounded-lg border border-border-theme/40 font-sans text-xs">
+              {isUpdating 
+                ? "Downloading and applying the latest changes. Please keep the app open; it will restart automatically to complete the update in a brief moment." 
+                : "A new version of the desktop app is ready to install."
+              }
             </p>
 
             {updateError && (
@@ -586,32 +609,30 @@ export default function App() {
             )}
 
             <div className="flex gap-3 justify-end mt-2">
-              <button
-                type="button"
-                onClick={() => setUpdateInfo(null)}
-                className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-main-bg/80 rounded-xl transition cursor-pointer"
-                disabled={isUpdating}
-              >
-                Later
-              </button>
-              <button
-                type="button"
-                onClick={handlePerformUpdate}
-                disabled={isUpdating}
-                className="px-4 py-2 bg-accent-main hover:bg-accent-main/90 disabled:bg-accent-main/50 text-white rounded-xl text-sm font-medium transition cursor-pointer shadow-sm flex items-center gap-2"
-              >
-                {isUpdating ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Download size={14} />
-                    Update & Restart
-                  </>
-                )}
-              </button>
+              {updateError ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setUpdateInfo(null)}
+                    className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-main-bg/80 rounded-xl transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePerformUpdate}
+                    className="px-4 py-2 bg-accent-main hover:bg-accent-main/90 text-white rounded-xl text-sm font-medium transition cursor-pointer flex items-center gap-2"
+                  >
+                    <RefreshCw size={14} />
+                    Retry Install
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center gap-2.5 text-xs text-text-muted py-2">
+                  <RefreshCw size={14} className="animate-spin text-accent-main" />
+                  <span>Installing automatically...</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
