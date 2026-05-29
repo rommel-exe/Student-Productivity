@@ -17,8 +17,8 @@ export default function TauriTitleBar() {
   const handleMinimize = async () => {
     try {
       const windowApi = await import("@tauri-apps/api/window");
-      const appWindow = typeof windowApi.getCurrentWindow === "function" 
-        ? windowApi.getCurrentWindow() 
+      const appWindow = typeof (windowApi as any).getCurrentWindow === "function" 
+        ? (windowApi as any).getCurrentWindow() 
         : (windowApi as any).appWindow;
       
       if (appWindow) {
@@ -32,8 +32,8 @@ export default function TauriTitleBar() {
   const handleMaximize = async () => {
     try {
       const windowApi = await import("@tauri-apps/api/window");
-      const appWindow = typeof windowApi.getCurrentWindow === "function" 
-        ? windowApi.getCurrentWindow() 
+      const appWindow = typeof (windowApi as any).getCurrentWindow === "function" 
+        ? (windowApi as any).getCurrentWindow() 
         : (windowApi as any).appWindow;
       
       if (appWindow) {
@@ -58,8 +58,8 @@ export default function TauriTitleBar() {
   const handleClose = async () => {
     try {
       const windowApi = await import("@tauri-apps/api/window");
-      const appWindow = typeof windowApi.getCurrentWindow === "function" 
-        ? windowApi.getCurrentWindow() 
+      const appWindow = typeof (windowApi as any).getCurrentWindow === "function" 
+        ? (windowApi as any).getCurrentWindow() 
         : (windowApi as any).appWindow;
         
       if (appWindow) {

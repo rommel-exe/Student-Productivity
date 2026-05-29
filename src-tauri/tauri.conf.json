@@ -14,6 +14,12 @@
       "all": false,
       "window": {
         "all": true
+      },
+      "updater": {
+        "all": true
+      },
+      "process": {
+        "relaunch": true
       }
     },
     "bundle": {
