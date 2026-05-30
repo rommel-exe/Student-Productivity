@@ -35,7 +35,7 @@ export default function App() {
     let active = true;
     const checkAppUpdates = async () => {
       try {
-        const isTauri = typeof window !== "undefined" && '__TAURI_IPC__' in window;
+        const isTauri = typeof window !== "undefined" && (window as any).__TAURI__;
         if (!isTauri) return;
 
         const { checkUpdate } = await import("@tauri-apps/api/updater");
