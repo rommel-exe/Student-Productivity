@@ -1,67 +1,17 @@
 {
+  "productName": "OneNoteObsidian",
+  "version": "0.0.0",
+  "identifier": "com.onenote.obsidian.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:3000",
-    "distDir": "../dist"
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "OneNoteObsidian",
-    "version": "0.0.0"
-  },
-  "tauri": {
+  "app": {
     "withGlobalTauri": true,
-    "allowlist": {
-      "all": false,
-      "window": {
-        "all": true
-      },
-      "updater": {
-        "all": true
-      },
-      "process": {
-        "relaunch": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "Office",
-      "copyright": "Copyright © 2026",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.onenote.obsidian.app",
-      "longDescription": "A beautiful cross-linked student study workspace blending OneNote sections with Obsidian bi-directional study graph nodes.",
-      "macOS": {
-        "frameworks": [],
-        "minimumSystemVersion": ""
-      },
-      "resources": [],
-      "shortDescription": "OneNote structures meet Obsidian links study tool",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": null
-      }
-    },
     "security": {
       "csp": null
-    },
-    "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/rommel-exe/Student-Productivity/releases/latest/download/latest.json"
-      ],
-      "dialog": false,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERFMzUzNDFGRDVFQkI0NDcKUldSSHRPdlZIelExM3A1Uk8vcEFMVGNUNFFjYWxYd1lCKzVkV1djanR6blQ5azBJR0l0MnBqdk0K"
     },
     "windows": [
       {
@@ -72,5 +22,41 @@
         "width": 1200
       }
     ]
+  },
+  "bundle": {
+    "active": true,
+    "category": "Office",
+    "copyright": "Copyright © 2026",
+    "deb": {
+      "depends": []
+    },
+    "externalBin": [],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "longDescription": "A beautiful cross-linked student study workspace blending OneNote sections with Obsidian bi-directional study graph nodes.",
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": ""
+    },
+    "resources": [],
+    "shortDescription": "OneNote structures meet Obsidian links study tool",
+    "targets": "all",
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": null
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/rommel-exe/Student-Productivity/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERFMzUzNDFGRDVFQkI0NDcKUldSSHRPdlZIelExM3A1Uk8vcEFMVGNUNFFjYWxYd1lCKzVkV1djanR6blQ5azBJR0l0MnBqdk0K"
+    }
   }
 }
