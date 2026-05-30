@@ -42,21 +42,20 @@ export default function App() {
         );
         if (!isTauri) return;
 
-        const { checkUpdate } = await import("@tauri-apps/api/updater");
-        const { shouldUpdate, manifest } = await checkUpdate();
-        if (shouldUpdate && active) {
+        const { check } = await import("@tauri-apps/plugin-updater");
+        const update = await check();
+        if (update && active) {
           setUpdateInfo({
             available: true,
-            version: (manifest && manifest.version) || "latest",
-            body: (manifest && manifest.body) || "A new update is available with outstanding improvements and features.",
+            version: update.version || "latest",
+            body: update.body || "A new update is available with outstanding improvements and features.",
           });
           setIsUpdating(true);
           
           try {
-            const { installUpdate } = await import("@tauri-apps/api/updater");
-            const { relaunch } = await import("@tauri-apps/api/process");
+            const { relaunch } = await import("@tauri-apps/plugin-process");
             
-            await installUpdate();
+            await update.downloadAndInstall();
             await relaunch();
           } catch (err: any) {
             console.error("Auto-Updater installation failed: ", err);
@@ -83,11 +82,14 @@ export default function App() {
     setIsUpdating(true);
     setUpdateError(null);
     try {
-      const { installUpdate } = await import("@tauri-apps/api/updater");
-      const { relaunch } = await import("@tauri-apps/api/process");
+      const { check } = await import("@tauri-apps/plugin-updater");
+      const { relaunch } = await import("@tauri-apps/plugin-process");
       
-      await installUpdate();
-      await relaunch();
+      const update = await check();
+      if (update) {
+        await update.downloadAndInstall();
+        await relaunch();
+      }
     } catch (err: any) {
       console.error("Auto-Updater Installation failed: ", err);
       setUpdateError(err.message || String(err));
