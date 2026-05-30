@@ -7,7 +7,12 @@ export default function TauriTitleBar() {
 
   useEffect(() => {
     // Check defined Tauri environment
-    if (typeof window !== "undefined" && (window as any).__TAURI__) {
+    const isTauriEnv = typeof window !== "undefined" && (
+      (window as any).__TAURI__ !== undefined || 
+      (window as any).__TAURI_IPC__ !== undefined || 
+      (window as any).__TAURI_METADATA__ !== undefined
+    );
+    if (isTauriEnv) {
       setIsTauri(true);
     }
   }, []);

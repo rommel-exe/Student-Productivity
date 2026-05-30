@@ -35,16 +35,20 @@ export default function App() {
     let active = true;
     const checkAppUpdates = async () => {
       try {
-        const isTauri = typeof window !== "undefined" && (window as any).__TAURI__;
+        const isTauri = typeof window !== "undefined" && (
+          (window as any).__TAURI__ !== undefined || 
+          (window as any).__TAURI_IPC__ !== undefined || 
+          (window as any).__TAURI_METADATA__ !== undefined
+        );
         if (!isTauri) return;
 
         const { checkUpdate } = await import("@tauri-apps/api/updater");
         const { shouldUpdate, manifest } = await checkUpdate();
-        if (shouldUpdate && manifest && active) {
+        if (shouldUpdate && active) {
           setUpdateInfo({
             available: true,
-            version: manifest.version || "unknown",
-            body: manifest.body || "A new update is available with outstanding improvements and features.",
+            version: (manifest && manifest.version) || "latest",
+            body: (manifest && manifest.body) || "A new update is available with outstanding improvements and features.",
           });
           setIsUpdating(true);
           
