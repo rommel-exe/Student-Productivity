@@ -2,8 +2,8 @@ name: 'Tauri Build and Release'
 
 on:
   push:
-    branches:
-      - main
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   release:
