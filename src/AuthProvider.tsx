@@ -46,9 +46,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const isTauri = typeof window !== "undefined" && (window as any).__TAURI__ !== undefined;
+      if (isTauri) {
+        // In Tauri Desktop, popups often fail due to strict WebView window policies. 
+        // We use signInWithRedirect instead to ensure the OAuth flow redirects properly within the webview.
+        // NOTE: Please ensure `http://localhost`, `tauri://localhost`, or `http://tauri.localhost` are added as Authorized Domains in Firebase Console.
+        const { signInWithRedirect } = await import("firebase/auth");
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
     } catch (error) {
       console.error("Error signing in with Google", error);
+      alert(error instanceof Error ? error.message : "Error signing in");
     }
   };
 
