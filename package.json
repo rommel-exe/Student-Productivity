@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test:icons": "tsx scripts/generate-and-verify-icons.ts",
+    "test": "tsx scripts/test-png-integrity.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

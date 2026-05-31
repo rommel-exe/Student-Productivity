@@ -1,0 +1,7 @@
+# Treat all PNG, ICNS, ICO, and other binary assets as binary files to prevent Git from performing LF -> CRLF conversions which corrupt them
+*.png binary
+*.icns binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
