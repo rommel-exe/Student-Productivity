@@ -1,6 +1,6 @@
 {
   "productName": "OneNoteObsidian",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "identifier": "com.onenote.obsidian.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -25,7 +25,7 @@
   },
   "bundle": {
     "active": true,
-    "category": null,
+    "category": "Education",
     "copyright": "Copyright © 2026",
     "externalBin": [],
     "icon": [
