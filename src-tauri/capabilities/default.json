@@ -1,0 +1,11 @@
+{
+  "$schema": "../target/schema/capabilities-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities of the app",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "updater:default",
+    "process:allow-relaunch"
+  ]
+}

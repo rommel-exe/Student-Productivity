@@ -50,20 +50,6 @@ export default function App() {
             version: update.version || "latest",
             body: update.body || "A new update is available with outstanding improvements and features.",
           });
-          setIsUpdating(true);
-          
-          try {
-            const { relaunch } = await import("@tauri-apps/plugin-process");
-            
-            await update.downloadAndInstall();
-            await relaunch();
-          } catch (err: any) {
-            console.error("Auto-Updater installation failed: ", err);
-            if (active) {
-              setUpdateError(err.message || String(err));
-              setIsUpdating(false);
-            }
-          }
         }
       } catch (err: any) {
         console.error("Tauri Auto-Updater check failed: ", err);
@@ -81,6 +67,7 @@ export default function App() {
   const handlePerformUpdate = async () => {
     setIsUpdating(true);
     setUpdateError(null);
+
     try {
       const { check } = await import("@tauri-apps/plugin-updater");
       const { relaunch } = await import("@tauri-apps/plugin-process");
@@ -596,14 +583,16 @@ export default function App() {
                 <span className="text-xs font-semibold px-2.5 py-1 bg-accent-main/10 text-accent-main rounded-full inline-block mb-1">
                   System Update
                 </span>
-                <h3 className="text-lg font-bold text-text-title font-display">Installing Update v{updateInfo.version}</h3>
+                <h3 className="text-lg font-bold text-text-title font-display">
+                  {isUpdating ? `Installing Update v${updateInfo.version}` : `Update v${updateInfo.version} Available`}
+                </h3>
               </div>
             </div>
 
             <p className="text-sm text-text-muted mb-4 leading-relaxed bg-main-bg/50 p-3 rounded-lg border border-border-theme/40 font-sans text-xs">
               {isUpdating 
                 ? "Downloading and applying the latest changes. Please keep the app open; it will restart automatically to complete the update in a brief moment." 
-                : "A new version of the desktop app is ready to install."
+                : updateInfo.body || "A new version of the desktop app is ready to install. Click 'Install Update' below to proceed."
               }
             </p>
 
@@ -633,11 +622,29 @@ export default function App() {
                     Retry Install
                   </button>
                 </>
-              ) : (
+              ) : isUpdating ? (
                 <div className="flex items-center gap-2.5 text-xs text-text-muted py-2">
                   <RefreshCw size={14} className="animate-spin text-accent-main" />
-                  <span>Installing automatically...</span>
+                  <span>Downloading & Installing...</span>
                 </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setUpdateInfo(null)}
+                    className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-main-bg/80 rounded-xl transition cursor-pointer"
+                  >
+                    Not Now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePerformUpdate}
+                    className="px-4 py-2 bg-accent-main hover:bg-accent-main/90 text-white rounded-xl text-sm font-medium transition cursor-pointer flex items-center gap-2"
+                  >
+                    <Download size={14} />
+                    Install Update
+                  </button>
+                </>
               )}
             </div>
           </div>

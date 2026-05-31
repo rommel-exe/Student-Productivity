@@ -47,3 +47,39 @@ jobs:
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
+
+  publish-latest-json:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Generate latest.json updater manifest
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$TAURI_PRIVATE_KEY" > tauri-keys
+          # Wait 10 seconds to ensure the GitHub Release API is fully updated with all artifacts
+          sleep 10
+          VERSION=$(node -e "console.log(require('./src-tauri/tauri.conf.json').version)")
+          echo "Bumping and generating signature for version $VERSION..."
+          npx tsx generate_latest_manifest.ts "v$VERSION"
+          echo "Uploading latest.json to release v$VERSION..."
+          gh release upload "v$VERSION" latest.json --clobber
+
