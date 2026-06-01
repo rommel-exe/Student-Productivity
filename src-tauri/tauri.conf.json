@@ -1,6 +1,6 @@
 {
   "productName": "OneNoteObsidian",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "identifier": "com.onenote.obsidian.app",
   "build": {
     "beforeDevCommand": "npm run dev",

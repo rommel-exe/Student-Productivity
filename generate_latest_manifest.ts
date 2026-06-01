@@ -1,29 +1,68 @@
 import fs from 'fs';
 import path from 'path';
+import https from 'https';
 import { execSync } from 'child_process';
 
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 6;
+const RETRY_DELAY = 10000; // 10 seconds
 
-function downloadAsset(version: string, assetName: string): void {
-  let attempt = 0;
-  while (attempt < MAX_RETRIES) {
-    try {
-      console.log(`Attempt ${attempt + 1}: Downloading ${assetName} via gh CLI...`);
-      execSync(`gh release download ${version} -p "${assetName}" --clobber`, { stdio: 'inherit' });
-      return;
-    } catch (err: any) {
-      console.warn(`Download failed, retrying in 10s...`);
-      execSync(`sleep 10`);
-      attempt++;
-    }
-  }
-  throw new Error(`Failed to download ${assetName} after ${MAX_RETRIES} attempts.`);
+function downloadFile(url: string, dest: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let attempt = 0;
+
+    const request = (currentUrl: string) => {
+      console.log(`[Attempt ${attempt + 1}/${MAX_RETRIES}] GET ${currentUrl}`);
+      https.get(currentUrl, { headers: { 'User-Agent': 'NodeUpdater/1.0' } }, (res) => {
+        if (res.statusCode === 302 || res.statusCode === 301) {
+          const redirectUrl = res.headers.location;
+          if (redirectUrl) {
+            request(redirectUrl);
+          } else {
+            reject(new Error(`Redirect response without location header from ${currentUrl}`));
+          }
+          return;
+        }
+
+        if (res.statusCode !== 200) {
+          if (attempt < MAX_RETRIES - 1) {
+            attempt++;
+            console.log(`Server returned status ${res.statusCode}. Retrying in ${RETRY_DELAY/1000}s...`);
+            setTimeout(() => request(url), RETRY_DELAY); // Retry the ORIGINAL url, not the redirect (in case the redirect was what 404'd)
+          } else {
+            reject(new Error(`Server returned status code ${res.statusCode} for ${currentUrl}`));
+          }
+          return;
+        }
+
+        const fileStream = fs.createWriteStream(dest);
+        res.pipe(fileStream);
+
+        fileStream.on('finish', () => {
+          fileStream.close();
+          resolve();
+        });
+
+        fileStream.on('error', (err) => {
+          fs.unlink(dest, () => reject(err));
+        });
+      }).on('error', (err) => {
+        if (attempt < MAX_RETRIES - 1) {
+          attempt++;
+          console.log(`Network error: ${err.message}. Retrying in ${RETRY_DELAY/1000}s...`);
+          setTimeout(() => request(url), RETRY_DELAY);
+        } else {
+          reject(err);
+        }
+      });
+    };
+
+    request(url);
+  });
 }
 
 function extractSignature(filePath: string): string {
   try {
-    const password = process.env.TAURI_KEY_PASSWORD || '';
-    const rawOutput = execSync(`npx tauri signer sign -f tauri-keys "${filePath}" -p "${password}"`, { encoding: 'utf8' });
+    const rawOutput = execSync(`npx tauri signer sign "${filePath}"`, { encoding: 'utf8' });
     const match = rawOutput.match(/Public signature:\s*([\s\S]+?)(?=\n\n|\n*$)/);
     if (match && match[1]) {
       return match[1].trim();
@@ -69,7 +108,7 @@ async function main() {
     console.log(`Downloading: ${asset.name}`);
     
     try {
-      downloadAsset(versionArg, asset.name);
+      await downloadFile(asset.url, destPath);
       const sizeBytes = fs.statSync(destPath).size;
       console.log(`Successfully downloaded ${asset.name} (${(sizeBytes / 1024 / 1024).toFixed(2)} MB)`);
 
@@ -86,6 +125,7 @@ async function main() {
       console.log(`Cleaned up temporary download file.`);
     } catch (err: any) {
       console.error(`FAILED to process ${asset.name}:`, err.message);
+      process.exit(1);
     }
   }
 
