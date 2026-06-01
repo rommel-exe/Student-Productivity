@@ -62,7 +62,15 @@ function downloadFile(url: string, dest: string): Promise<void> {
 
 function extractSignature(filePath: string): string {
   try {
-    const rawOutput = execSync(`npx tauri signer sign "${filePath}"`, { encoding: 'utf8' });
+    const password = process.env.TAURI_KEY_PASSWORD || process.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '';
+    const rawOutput = execSync(`npx tauri signer sign -f tauri-keys "${filePath}" -p "${password}"`, { 
+      encoding: 'utf8',
+      env: { 
+        ...process.env, 
+        TAURI_SIGNING_PRIVATE_KEY: undefined, 
+        TAURI_SIGNING_PRIVATE_KEY_PASSWORD: undefined 
+      }
+    });
     const match = rawOutput.match(/Public signature:\s*([\s\S]+?)(?=\n\n|\n*$)/);
     if (match && match[1]) {
       return match[1].trim();
@@ -70,7 +78,7 @@ function extractSignature(filePath: string): string {
     throw new Error(`Could not parse signature from CLI output: ${rawOutput}`);
   } catch (error: any) {
     console.error(`Error signing ${filePath}:`, error.message);
-    throw error;
+    process.exit(1);
   }
 }
 
