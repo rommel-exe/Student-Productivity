@@ -465,7 +465,7 @@ export default function SettingsView({
                     </div>
                     <div className="flex justify-between py-1 border-b border-border-theme/40">
                       <span className="text-text-muted">Relaunch Capability:</span>
-                      <span className="text-green-500 font-medium">Enabled (process:allow-relaunch)</span>
+                      <span className="text-green-500 font-medium">Enabled (process:allow-restart)</span>
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-text-muted">Platform Hook:</span>
@@ -537,7 +537,7 @@ export default function SettingsView({
                     </div>
                     <div>
                       <p className="font-semibold text-text-title font-sans">Tauri v2 Permissions (default.json) properly declared</p>
-                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">Permissions `updater:default` and `process:allow-relaunch` are active inside the default capability map.</p>
+                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">Permissions `updater:default` and `process:allow-restart` are active inside the default capability map.</p>
                     </div>
                   </div>
 
