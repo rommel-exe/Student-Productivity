@@ -43,7 +43,8 @@ function downloadFile(url: string, dest: string): Promise<void> {
 
 function extractSignature(filePath: string): string {
   try {
-    const rawOutput = execSync(`npx tauri signer sign -f tauri-keys "${filePath}" -p ""`, { encoding: 'utf8' });
+    const password = process.env.TAURI_KEY_PASSWORD || '';
+    const rawOutput = execSync(`npx tauri signer sign -f tauri-keys "${filePath}" -p "${password}"`, { encoding: 'utf8' });
     const match = rawOutput.match(/Public signature:\s*([\s\S]+?)(?=\n\n|\n*$)/);
     if (match && match[1]) {
       return match[1].trim();
