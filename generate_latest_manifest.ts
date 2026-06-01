@@ -1,44 +1,23 @@
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 import { execSync } from 'child_process';
 
-// Follow redirects helper
-function downloadFile(url: string, dest: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = (currentUrl: string) => {
-      https.get(currentUrl, (res) => {
-        if (res.statusCode === 302 || res.statusCode === 301) {
-          const redirectUrl = res.headers.location;
-          if (redirectUrl) {
-            request(redirectUrl);
-          } else {
-            reject(new Error(`Redirect response without location header from ${currentUrl}`));
-          }
-          return;
-        }
+const MAX_RETRIES = 5;
 
-        if (res.statusCode !== 200) {
-          reject(new Error(`Server returned status code ${res.statusCode} for ${currentUrl}`));
-          return;
-        }
-
-        const fileStream = fs.createWriteStream(dest);
-        res.pipe(fileStream);
-
-        fileStream.on('finish', () => {
-          fileStream.close();
-          resolve();
-        });
-
-        fileStream.on('error', (err) => {
-          fs.unlink(dest, () => reject(err));
-        });
-      }).on('error', reject);
-    };
-
-    request(url);
-  });
+function downloadAsset(version: string, assetName: string): void {
+  let attempt = 0;
+  while (attempt < MAX_RETRIES) {
+    try {
+      console.log(`Attempt ${attempt + 1}: Downloading ${assetName} via gh CLI...`);
+      execSync(`gh release download ${version} -p "${assetName}" --clobber`, { stdio: 'inherit' });
+      return;
+    } catch (err: any) {
+      console.warn(`Download failed, retrying in 10s...`);
+      execSync(`sleep 10`);
+      attempt++;
+    }
+  }
+  throw new Error(`Failed to download ${assetName} after ${MAX_RETRIES} attempts.`);
 }
 
 function extractSignature(filePath: string): string {
@@ -63,8 +42,7 @@ async function main() {
 
   console.log(`Starting signature generation for tag: ${versionArg} (version: ${cleanVersion})...`);
 
-  // Force URLs to use .exe wait, Tauri v2 Windows updater sometimes needs the .exe
-  // We'll stick to the exact previous asset names
+  // Force URLs to use exact asset names
   const assetsToSign = [
     {
       id: 'darwin-aarch64',
@@ -89,10 +67,9 @@ async function main() {
     const destPath = path.join(process.cwd(), asset.name);
     console.log(`\n--------------------------------------------`);
     console.log(`Downloading: ${asset.name}`);
-    console.log(`From URL: ${asset.url}`);
     
     try {
-      await downloadFile(asset.url, destPath);
+      downloadAsset(versionArg, asset.name);
       const sizeBytes = fs.statSync(destPath).size;
       console.log(`Successfully downloaded ${asset.name} (${(sizeBytes / 1024 / 1024).toFixed(2)} MB)`);
 
@@ -114,7 +91,7 @@ async function main() {
 
   const latestJson = {
     version: cleanVersion,
-    notes: `Official release ${versionArg} is now available. Bug fixes and performance improvements.`,
+    notes: `Official release ${versionArg} is now available. Important bug fixes for the updater manifest format.`,
     pub_date: new Date().toISOString(),
     platforms
   };
@@ -127,3 +104,4 @@ async function main() {
 }
 
 main().catch(console.error);
+

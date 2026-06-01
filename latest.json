@@ -1,19 +1,19 @@
 {
-  "version": "0.0.1",
-  "notes": "Official release v0.0.1 update schema files.",
-  "pub_date": "2026-05-31T12:01:33.887Z",
+  "version": "0.0.6",
+  "notes": "Official release v0.0.6 is now available. Bug fixes and performance improvements.",
+  "pub_date": "2026-06-01T08:09:39.639Z",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUnhpWHE0WVE5eXFoeUY4am1sVVBlNnUyM3VXMFRxUFdVckJ3bW1FaUEwSFNHM2M4RjRmVy9SU1hIaUhEdEpJTWFpTC93WEtwek9KNGY5UkVvNVRrNTRNdzZOaWxtT3dVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMjI4ODg5CWZpbGU6T25lTm90ZU9ic2lkaWFuX2FhcmNoNjQuYXBwLnRhci5negpXTlFMR2JLbUJ4Ums0bTJDanlpS0tnRGJQbml4UkxBWml3MS8raXJsbWhQSS9nRU1DbGFxWUpFSXY5SHJoeDRHSUlzL2d5M3krWGIvNUdwMFJCMkdBZz09Cg==",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.1/OneNoteObsidian_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUnhpWHE0WVE5eXJvTjJkTE44QXVWQnJnd1ZSTzczRjF0TkFVd1NHZ2JlaWNkR2k2NStsbEIyU0I4TnFHRUpwQkpsczVRWjNVVWcrbDRlY24vZFh0L0Q4ZW8vQzNIa0FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMzAxMzY5CWZpbGU6T25lTm90ZU9ic2lkaWFuX2FhcmNoNjQuYXBwLnRhci5negovcS9jUkdScFlIZHMvc0RNVGpReDRUUlJVZmRkZ2p1cDRBeUM4bGo0bEN3ZUh6M05OVnZtNlZ0NmJIV3F1OGlRWEZVQ1g0aDdXY2lJVUptRFUwOUZEdz09Cg==",
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.6/OneNoteObsidian_aarch64.app.tar.gz"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUnhpWHE0WVE5eXU0Vit0ZC93eUJTQkw1R0t6OTJDZjhpNU5SQkVxbmprR09ZWWhOKzFHMEF3TEd1c0F1a3VXQU1KajRHVkFiSGtoTlBKSC94SjZ3RnZBRmgzMUFRRGdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMjI4ODkyCWZpbGU6T25lTm90ZU9ic2lkaWFuXzAuMC4xX2FtZDY0LkFwcEltYWdlCjdIRHN6dVFHMVpqZGZZNlJHaGppNURabEFpUzB0YXZvOG9jYXd2aFJnNlpxRDkvQTRuY3RmMy9TVW5XUGc5YkpPaE9KRXZmNjEyMEJiV3FteDZ4dkF3PT0K",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.1/OneNoteObsidian_0.0.1_amd64.AppImage"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUnhpWHE0WVE5eWxYK2toNDhBM1NhKy83RWFCZDRNcTBnVmpUdkFlN0J4cktNaUNCRlRKZmpSUm5sMkJ2aU9ORDdDSTZmSUFFTlZyMVNZdnRtWGhlVmREOGxsSnB2VEFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMzAxMzc3CWZpbGU6T25lTm90ZU9ic2lkaWFuXzAuMC42X2FtZDY0LkFwcEltYWdlCnBUMXhlSnBnTUNCY0IyOVBleW5VRVFubkpmcVFuVnNYbG9aYk1sSUlndnhYRTJaNjVmMW96N1ZPbGxucUUzOXg5WDNCemZKcGphUmhWamg5UnkzN0FnPT0K",
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.6/OneNoteObsidian_0.0.6_amd64.AppImage"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUnhpWHE0WVE5eW11dTV0dDJYVk9ucTVzNXBRQUJhWkRlSmY2N3lVT2pKbno0b2xHNUJORFNJc2N4UlM5dHRqT1VGWXdmNTE2SUxCckVLbXpQQzRDajEwYkpVR0ROalFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMjI4ODkzCWZpbGU6T25lTm90ZU9ic2lkaWFuXzAuMC4xX3g2NF9lbi1VUy5tc2kKQS9pTDVQdW5FUisyWUMvMHhFTFZBK28xRUxLeFQxTDMrRDQ1a0NZNnBtb1ZNTEdyNjlCNFQwbUlyNlM0MEVZeVk4dDZOc2IyeDd5MEpGY0x0TExhRHc9PQo=",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.1/OneNoteObsidian_0.0.1_x64_en-US.msi"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUnhpWHE0WVE5eW85Z0w5WHQ4K2RnNkY0Ri9RVmxkMFpCK3VHSHVpMzQwV1J3cHFGSG9SaE4wYnI3YXU1Wkg4UWI5WmJoeEM5UFB2RG9Dbll1UFM2QStYUnBuQWFIU3dBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwMzAxMzc5CWZpbGU6T25lTm90ZU9ic2lkaWFuXzAuMC42X3g2NC1zZXR1cC5leGUKYzlxMWMrR3NZM2pqeWVzQkNpbWcyVGFWUFJxeXZXRlRYWS82blBjT0w1SGRUZExBZ01Pa01sdkNQaDhkNUNpZkw3MW45QUxJa1hxMGZGOWphM1dIQ2c9PQo=",
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.6/OneNoteObsidian_0.0.6_x64-setup.exe"
     }
   }
 }
