@@ -1,118 +1,68 @@
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 import { execSync } from 'child_process';
-
-// Follow redirects helper
-function downloadFile(url: string, dest: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = (currentUrl: string) => {
-      https.get(currentUrl, (res) => {
-        if (res.statusCode === 302 || res.statusCode === 301) {
-          const redirectUrl = res.headers.location;
-          if (redirectUrl) {
-            request(redirectUrl);
-          } else {
-            reject(new Error(`Redirect response without location header from ${currentUrl}`));
-          }
-          return;
-        }
-
-        if (res.statusCode !== 200) {
-          reject(new Error(`Server returned status code ${res.statusCode} for ${currentUrl}`));
-          return;
-        }
-
-        const fileStream = fs.createWriteStream(dest);
-        res.pipe(fileStream);
-
-        fileStream.on('finish', () => {
-          fileStream.close();
-          resolve();
-        });
-
-        fileStream.on('error', (err) => {
-          fs.unlink(dest, () => reject(err));
-        });
-      }).on('error', reject);
-    };
-
-    request(url);
-  });
-}
-
-function extractSignature(filePath: string): string {
-  try {
-    const password = process.env.TAURI_KEY_PASSWORD || '';
-    const rawOutput = execSync(`npx tauri signer sign -f tauri-keys "${filePath}" -p "${password}"`, { encoding: 'utf8' });
-    const match = rawOutput.match(/Public signature:\s*([\s\S]+?)(?=\n\n|\n*$)/);
-    if (match && match[1]) {
-      return match[1].trim();
-    }
-    throw new Error(`Could not parse signature from CLI output: ${rawOutput}`);
-  } catch (error: any) {
-    console.error(`Error signing ${filePath}:`, error.message);
-    throw error;
-  }
-}
 
 async function main() {
   const args = process.argv.slice(2);
   const versionArg = args[0] || 'v0.0.1';
   const cleanVersion = versionArg.replace(/^v/, '');
 
-  console.log(`Starting signature generation for tag: ${versionArg} (version: ${cleanVersion})...`);
+  console.log(`Generating manifest from GitHub Release assets for tag: ${versionArg}...`);
 
-  const assetsToSign = [
-    {
-      id: 'darwin-aarch64',
-      name: `OneNoteObsidian_aarch64.app.tar.gz`,
-      url: `https://github.com/rommel-exe/Student-Productivity/releases/download/${versionArg}/OneNoteObsidian_aarch64.app.tar.gz`
-    },
-    {
-      id: 'linux-x86_64',
-      name: `OneNoteObsidian_${cleanVersion}_amd64.AppImage`,
-      url: `https://github.com/rommel-exe/Student-Productivity/releases/download/${versionArg}/OneNoteObsidian_${cleanVersion}_amd64.AppImage`
-    },
-    {
-      id: 'windows-x86_64',
-      name: `OneNoteObsidian_${cleanVersion}_x64_en-US.msi`,
-      url: `https://github.com/rommel-exe/Student-Productivity/releases/download/${versionArg}/OneNoteObsidian_${cleanVersion}_x64_en-US.msi`
-    }
-  ];
+  // Use GitHub CLI to get all assets for this release
+  const releaseJson = execSync(`gh release view ${versionArg} --json assets`, { encoding: 'utf8' });
+  const releaseInfo = JSON.parse(releaseJson);
+  const assets: { name: string, url: string }[] = releaseInfo.assets;
+
+  console.log(`Found ${assets.length} assets in release ${versionArg}.`);
 
   const platforms: Record<string, { signature: string; url: string }> = {};
 
-  for (const asset of assetsToSign) {
-    const destPath = path.join(process.cwd(), asset.name);
-    console.log(`\n--------------------------------------------`);
-    console.log(`Downloading: ${asset.name}`);
-    console.log(`From URL: ${asset.url}`);
+  // Find all .sig files
+  const sigAssets = assets.filter(a => a.name.endsWith('.sig'));
+
+  for (const sig of sigAssets) {
+    const parentName = sig.name.replace(/\.sig$/, '');
+    const parentAsset = assets.find(a => a.name === parentName);
     
-    try {
-      await downloadFile(asset.url, destPath);
-      const sizeBytes = fs.statSync(destPath).size;
-      console.log(`Successfully downloaded ${asset.name} (${(sizeBytes / 1024 / 1024).toFixed(2)} MB)`);
+    if (!parentAsset) {
+      console.warn(`Could not find parent asset for ${sig.name}`);
+      continue;
+    }
 
-      console.log(`Generating signature using Tauri CLI...`);
-      const signature = extractSignature(destPath);
-      console.log(`SUCCESS! Signature generated.`);
+    console.log(`Fetching signature from ${sig.url}...`);
+    // Download the .sig file content
+    const sigContent = execSync(`curl -sL "${sig.url}"`, { encoding: 'utf8' }).trim();
 
-      platforms[asset.id] = {
-        signature,
-        url: asset.url
+    // Map filename to Tauri platform keys
+    let platformKey = '';
+    if (parentName.includes('aarch64.app')) {
+      platformKey = 'darwin-aarch64';
+    } else if (parentName.includes('x64.app')) {
+      platformKey = 'darwin-x86_64';
+    } else if (parentName.includes('AppImage.tar.gz')) {
+      platformKey = 'linux-x86_64';
+    } else if (parentName.includes('windows') || parentName.includes('nsis.zip') || parentName.includes('msi.zip') || parentName.includes('x64-setup')) {
+      platformKey = 'windows-x86_64';
+    } else {
+      console.warn(`Unrecognized platform for asset: ${parentAsset.name}`);
+      // Fallback guessing
+      if (parentAsset.name.endsWith('.tar.gz')) platformKey = 'linux-x86_64';
+      if (parentAsset.name.endsWith('.zip')) platformKey = 'windows-x86_64';
+    }
+
+    if (platformKey) {
+      platforms[platformKey] = {
+        signature: sigContent,
+        url: parentAsset.url
       };
-
-      fs.unlinkSync(destPath);
-      console.log(`Cleaned up temporary download file.`);
-    } catch (err: any) {
-      console.error(`FAILED to process ${asset.name}:`, err.message);
+      console.log(`Mapped ${parentAsset.name} to ${platformKey}.`);
     }
   }
 
   const latestJson = {
     version: cleanVersion,
-    notes: `Official release ${versionArg} update schema files.`,
+    notes: `Update ${versionArg} is now available. Bug fixes and performance improvements.`,
     pub_date: new Date().toISOString(),
     platforms
   };
