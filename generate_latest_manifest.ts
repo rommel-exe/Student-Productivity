@@ -62,7 +62,34 @@ function downloadFile(url: string, dest: string): Promise<void> {
 
 function extractSignature(filePath: string): string {
   try {
-    const rawOutput = execSync(`npx tauri signer sign "${filePath}"`, { encoding: 'utf8' });
+    const rawKey = process.env.TAURI_SIGNING_PRIVATE_KEY || '';
+    const password = process.env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '';
+    
+    // Fix word-wrapped or line-broken base64 in GitHub secrets by extracting comment and combining base64 data
+    const lines = rawKey.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let cleanKey = rawKey;
+    if (lines.length >= 2) {
+      const comment = lines[0];
+      const base64 = lines.slice(1).join('');
+      cleanKey = `${comment}\n${base64}\n`;
+    }
+
+    const keyPath = path.join(process.cwd(), 'sanitized-tauri-key');
+    fs.writeFileSync(keyPath, cleanKey, { encoding: 'utf8', mode: 0o600 });
+    
+    console.log(`Executing signer with sanitized key (length: ${cleanKey.length}) and password length: ${password.length}`);
+
+    const rawOutput = execSync(`npx tauri signer sign -f "${keyPath}" "${filePath}"`, { 
+      encoding: 'utf8',
+      env: { 
+        ...process.env, 
+        TAURI_SIGNING_PRIVATE_KEY: undefined, 
+        TAURI_SIGNING_PRIVATE_KEY_PASSWORD: password 
+      }
+    });
+
+    fs.unlinkSync(keyPath);
+
     const match = rawOutput.match(/Public signature:\s*([\s\S]+?)(?=\n\n|\n*$)/);
     if (match && match[1]) {
       return match[1].trim();

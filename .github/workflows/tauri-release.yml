@@ -79,7 +79,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "$TAURI_PRIVATE_KEY" > tauri-keys
           # Wait 10 seconds to ensure the GitHub Release API is fully updated with all artifacts
           sleep 10
           VERSION=$(node -e "console.log(require('./src-tauri/tauri.conf.json').version)")
