@@ -1,7 +1,7 @@
 {
   "productName": "OneNoteObsidian",
-  "version": "0.0.13",
-  "identifier": "com.onenote.obsidian.app",
+  "version": "0.0.14",
+  "identifier": "com.onenote-obsidian.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -51,9 +51,9 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/rommel-exe/Student-Productivity/releases/latest/download/latest.json"
+        "https://raw.githubusercontent.com/rommel-exe/Student-Productivity/main/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE2NUMyQ0REODczNENBNzAKUldSd3lqU0gzU3hjRmhYWE4zeUplVjM2Z2F0SWZJdlVVZkN5QU9YTi9wNGs0U3czSGJZam1XeUIK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENBM0Q4NEUxRUEyNUM2NTEKUldSUnhpWHE0WVE5eXV1K1RQMHBZN3hob3cyWVNVKzhQOFFVbkZFTXA4dU0yM3QwejlTWEpqMzIK"
     }
   }
 }
