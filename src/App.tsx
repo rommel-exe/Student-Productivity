@@ -442,7 +442,8 @@ export default function App() {
             <span className="relative z-10">🎓</span>
           </div>
           <h1 className="text-2xl font-display font-bold text-text-title mb-2">Welcome to Almanac</h1>
-          <p className="text-text-muted mb-8">A focused workspace for your notes, tasks, and calendar. Please sign in to continue.</p>
+          <p className="text-text-muted mb-8 text-sm">A focused workspace for your notes, tasks, and calendar. Please sign in to continue.</p>
+          
           <button 
             onClick={signInWithGoogle}
             className="w-full py-3 px-4 bg-accent-main hover:bg-accent-main/90 text-white rounded-xl font-medium transition cursor-pointer shadow-sm flex items-center justify-center gap-2"

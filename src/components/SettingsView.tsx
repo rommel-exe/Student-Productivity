@@ -250,7 +250,7 @@ export default function SettingsView({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3">
+                 <div className="flex flex-col gap-3">
                   <label className="text-sm font-semibold text-text-title block">Password</label>
                   <div className="flex gap-3">
                     <input type="password" value="********" readOnly className="flex-1 bg-black/5 dark:bg-white/5 border border-border-theme px-3 py-2 rounded-lg text-sm text-text-muted outline-none focus:border-accent-main/50" />
@@ -261,7 +261,7 @@ export default function SettingsView({
                 </div>
 
                 <div className="h-px bg-border-theme w-full" />
-                
+
                 <div>
                   <h4 className="font-semibold text-text-title mb-3 flex items-center gap-2"><Shield className="w-4 h-4" /> Account Actions</h4>
                   <p className="text-sm text-text-muted mb-4">Sign out of your account on this device.</p>
