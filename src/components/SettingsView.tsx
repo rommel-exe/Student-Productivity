@@ -28,6 +28,25 @@ export default function SettingsView({
   const [activeTab, setActiveTab] = useState<"account" | "appearance" | "data" | "integrations" | "notifications" | "updates">("appearance");
   const { logout } = useAuth();
 
+  const [localVersion, setLocalVersion] = useState("0.0.16");
+
+  useEffect(() => {
+    const isTauri = typeof window !== "undefined" && (
+      (window as any).__TAURI__ !== undefined || 
+      (window as any).__TAURI_IPC__ !== undefined || 
+      (window as any).__TAURI_METADATA__ !== undefined
+    );
+    if (isTauri) {
+      import("@tauri-apps/api/app")
+        .then(({ getVersion }) => {
+          getVersion()
+            .then((ver) => setLocalVersion(ver))
+            .catch((err) => console.error("Failed to get Tauri version:", err));
+        })
+        .catch((err) => console.error("Failed to load Tauri app API:", err));
+    }
+  }, []);
+
   // Diagnostics and Repository state
   const [githubReleases, setGithubReleases] = useState<any[]>([]);
   const [loadingGithub, setLoadingGithub] = useState(false);
@@ -457,7 +476,7 @@ export default function SettingsView({
                   <div className="text-xs space-y-2.5">
                     <div className="flex justify-between py-1 border-b border-border-theme/40">
                       <span className="text-text-muted">App Version (Local):</span>
-                      <span className="font-mono text-emerald-500 font-bold">0.0.2</span>
+                      <span className="font-mono text-emerald-500 font-bold">v{localVersion}</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-border-theme/40">
                       <span className="text-text-muted">App Identifier:</span>
@@ -526,7 +545,7 @@ export default function SettingsView({
                     </div>
                     <div>
                       <p className="font-semibold text-text-title font-sans">Tauri Updater Signature Pubkey matches configuration</p>
-                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">The public key dW50cnVzdGVkIGNvbW1lbnQ6... (CA3D84...) is configured. This matches the release build keys for binary validation.</p>
+                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">The updated public key dW50cnVzdGVk... (165C2C...) is configured. This matches the release build keys for binary validation.</p>
                     </div>
                   </div>
 
@@ -541,47 +560,68 @@ export default function SettingsView({
                     </div>
                   </div>
 
-                  {/* Item 3 (Audit Alert) */}
-                  {!loadingGithub && (
-                    <div className="flex gap-3 leading-relaxed items-start max-w-full">
-                      <div className="mt-0.5 bg-amber-500/10 text-amber-500 rounded p-0.5 shrink-0">
-                        <AlertTriangle size={14} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-amber-500 font-sans">CRITICAL: missing "latest.json" asset in GitHub Release assets</p>
-                        <p className="text-text-muted mt-1 text-[11px] leading-relaxed">
-                          Your latest GitHub Release tag (<b className="text-text-title">{githubReleases[0]?.tag_name || "v0.0.1"}</b>) contains binary installers (RPM, DMG, AppImage, EXE, MSI), but is <span className="text-red-500 font-semibold">missing the updater manifest "latest.json" asset file</span>.
-                        </p>
-                        <p className="text-text-muted mt-1 text-[11px] leading-relaxed">
-                          Because of this, the Tauri client calling <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px] text-text-body">https://github.com/rommel-exe/Student-Productivity/releases/latest/download/latest.json</code> receives a <span className="text-red-500 font-semibold">404 Not Found</span> error, causing the updater check to exit quietly or throw a connection error.
-                        </p>
-                        <div className="mt-4 bg-main-bg/60 p-4 rounded-xl border border-border-theme/40 text-text-muted">
-                          <p className="font-semibold text-[10px] uppercase text-text-title tracking-wider mb-2 font-sans flex items-center gap-1">
-                            <HelpCircle size={10} className="text-accent-main" />
-                            How to solve / fix updater:
+                  {/* Item 3 (Audit Status) */}
+                  {!loadingGithub && githubReleases[0] && (() => {
+                    const latestRelease = githubReleases[0];
+                    const hasLatestJson = latestRelease?.assets?.some((a: any) => a.name === "latest.json");
+
+                    if (hasLatestJson) {
+                      return (
+                        <div className="flex gap-3 leading-relaxed items-start max-w-full">
+                          <div className="mt-0.5 bg-green-500/10 text-green-500 rounded p-0.5 shrink-0">
+                            <Check size={14} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-text-title font-sans">Tauri Updater Manifest (latest.json) verified online!</p>
+                            <p className="text-text-muted mt-0.5 text-[11px] leading-relaxed">
+                              Successfully located <code className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-[10px] text-text-body">latest.json</code> in release assets of <b className="text-text-title">{latestRelease.tag_name}</b>. Installed Tauri clients can check this file dynamically to receive signature-verified upgrades.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex gap-3 leading-relaxed items-start max-w-full">
+                        <div className="mt-0.5 bg-amber-500/10 text-amber-500 rounded p-0.5 shrink-0">
+                          <AlertTriangle size={14} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-amber-500 font-sans">CRITICAL: missing "latest.json" asset in GitHub Release assets</p>
+                          <p className="text-text-muted mt-1 text-[11px] leading-relaxed">
+                            Your latest GitHub Release tag (<b className="text-text-title">{latestRelease.tag_name || "v0.0.1"}</b>) contains binary installers (RPM, DMG, AppImage, EXE, MSI), but is <span className="text-red-500 font-semibold">missing the updater manifest "latest.json" asset file</span>.
                           </p>
-                          <p className="text-[10px] leading-normal mb-3">Create a local file named <code className="font-mono text-accent-main bg-accent-main/5 px-1 py-0.5 rounded">latest.json</code> in this format (signing the hash of your releases with your private key), then upload it to your GitHub releases assets list:</p>
-                          <pre className="text-[11px] font-mono whitespace-pre-wrap bg-black/15 dark:bg-black/30 p-3 rounded-lg border border-border-theme/40 text-text-body select-text leading-normal max-h-[160px] overflow-auto">
+                          <p className="text-text-muted mt-1 text-[11px] leading-relaxed">
+                            Because of this, the Tauri client calling <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px] text-text-body">https://github.com/rommel-exe/Student-Productivity/releases/latest/download/latest.json</code> receives a <span className="text-red-500 font-semibold">404 Not Found</span> error, causing the updater check to exit quietly or throw a connection error.
+                          </p>
+                          <div className="mt-4 bg-main-bg/60 p-4 rounded-xl border border-border-theme/40 text-text-muted">
+                            <p className="font-semibold text-[10px] uppercase text-text-title tracking-wider mb-2 font-sans flex items-center gap-1">
+                              <HelpCircle size={10} className="text-accent-main" />
+                              How to solve / fix updater:
+                            </p>
+                            <p className="text-[10px] leading-normal mb-3">Create a local file named <code className="font-mono text-accent-main bg-accent-main/5 px-1 py-0.5 rounded">latest.json</code> in this format (signing the hash of your releases with your private key), then upload it to your GitHub releases assets list:</p>
+                            <pre className="text-[11px] font-mono whitespace-pre-wrap bg-black/15 dark:bg-black/30 p-3 rounded-lg border border-border-theme/40 text-text-body select-text leading-normal max-h-[160px] overflow-auto">
 {`{
-  "version": "0.0.2",
+  "version": "0.0.16",
   "notes": "Workspace upgrades, custom multi-tab settings, and updated capability parameters.",
   "pub_date": "${new Date().toISOString()}",
   "platforms": {
     "darwin-aarch64": {
       "signature": "<signature-content>",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.2/OneNoteObsidian_aarch64.app.tar.gz"
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.16/OneNoteObsidian_aarch64.app.tar.gz"
     },
     "windows-x86_64": {
       "signature": "<signature-content>",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.2/OneNoteObsidian_0.0.2_x64-setup.exe"
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.16/OneNoteObsidian_0.0.16_x64-setup.exe"
     }
   }
 }`}
-                          </pre>
+                            </pre>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             </div>
