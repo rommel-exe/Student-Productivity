@@ -28,7 +28,7 @@ export default function SettingsView({
   const [activeTab, setActiveTab] = useState<"account" | "appearance" | "data" | "integrations" | "notifications" | "updates">("appearance");
   const { logout } = useAuth();
 
-  const [localVersion, setLocalVersion] = useState("0.0.17");
+  const [localVersion, setLocalVersion] = useState("0.0.18");
 
   useEffect(() => {
     const isTauri = typeof window !== "undefined" && (
@@ -602,17 +602,17 @@ export default function SettingsView({
                             <p className="text-[10px] leading-normal mb-3">Create a local file named <code className="font-mono text-accent-main bg-accent-main/5 px-1 py-0.5 rounded">latest.json</code> in this format (signing the hash of your releases with your private key), then upload it to your GitHub releases assets list:</p>
                             <pre className="text-[11px] font-mono whitespace-pre-wrap bg-black/15 dark:bg-black/30 p-3 rounded-lg border border-border-theme/40 text-text-body select-text leading-normal max-h-[160px] overflow-auto">
 {`{
-  "version": "0.0.17",
+  "version": "0.0.18",
   "notes": "Workspace upgrades, custom multi-tab settings, and updated capability parameters.",
   "pub_date": "${new Date().toISOString()}",
   "platforms": {
     "darwin-aarch64": {
       "signature": "<signature-content>",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.17/OneNoteObsidian_aarch64.app.tar.gz"
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.18/OneNoteObsidian_aarch64.app.tar.gz"
     },
     "windows-x86_64": {
       "signature": "<signature-content>",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.17/OneNoteObsidian_0.0.17_x64-setup.exe"
+      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.18/OneNoteObsidian_0.0.18_x64-setup.exe"
     }
   }
 }`}
