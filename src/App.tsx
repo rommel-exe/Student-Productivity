@@ -201,6 +201,11 @@ export default function App() {
   useEffect(() => {
     let isActive = true;
     if (user && !loading && !cloudLoaded) {
+      if (user.uid === "guest-user") {
+        setCloudLoaded(true);
+        setIsSyncing(false);
+        return;
+      }
       setIsSyncing(true);
       import("firebase/firestore").then(async ({ getDoc, doc }) => {
         try {
@@ -234,6 +239,9 @@ export default function App() {
     
     // Crucial patch: Don't accidentally wipe firestore if cloud data isn't merged yet
     if (user && !loading && cloudLoaded) {
+      if (user.uid === "guest-user") {
+        return;
+      }
       setIsSyncing(true);
       const timeoutId = setTimeout(async () => {
         try {
