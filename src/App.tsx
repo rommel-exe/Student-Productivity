@@ -8,7 +8,7 @@ import { Sparkles, Download, RefreshCw, X, AlertCircle } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
 import NoteEditor from "./components/NoteEditor";
-import TauriTitleBar from "./components/TauriTitleBar";
+import ElectronTitleBar from "./components/ElectronTitleBar";
 import CalendarComponent from "./components/CalendarComponent";
 import SettingsView from "./components/SettingsView";
 import { INITIAL_STATE } from "./data/initialData";
@@ -22,7 +22,7 @@ const LOCAL_STORAGE_KEY = "almanac_suite_workspace_data";
 export default function App() {
   const { user, signInWithGoogle, logout, loading } = useAuth();
 
-  // Tauri Automatic Updater Integration
+  // Electron Automatic Updater Integration
   const [updateInfo, setUpdateInfo] = useState<{
     available: boolean;
     version: string;
@@ -30,37 +30,55 @@ export default function App() {
   } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [isReadyToInstall, setIsReadyToInstall] = useState(false);
+  const [downloadPercent, setDownloadPercent] = useState<number>(0);
 
   useEffect(() => {
     let active = true;
+
     const checkAppUpdates = async () => {
       try {
-        const isTauri = typeof window !== "undefined" && (
-          (window as any).__TAURI__ !== undefined || 
-          (window as any).__TAURI_IPC__ !== undefined || 
-          (window as any).__TAURI_METADATA__ !== undefined
-        );
-        if (!isTauri) return;
-
-        const { check } = await import("@tauri-apps/plugin-updater");
-        const update = await check();
-        if (update && active) {
-          setUpdateInfo({
-            available: true,
-            version: update.version || "latest",
-            body: update.body || "A new update is available with outstanding improvements and features.",
-          });
+        const isElectron = typeof window !== "undefined" && (window as any).electronAPI !== undefined;
+        if (isElectron) {
+          const updateResult = await (window as any).electronAPI.checkForUpdates();
+          if (updateResult && updateResult.available && active) {
+            setUpdateInfo({
+              available: true,
+              version: updateResult.version,
+              body: updateResult.notes || "A new update is available with outstanding improvements and features.",
+            });
+          }
         }
       } catch (err: any) {
-        console.error("Tauri Auto-Updater check failed: ", err);
+        console.error("Auto-Updater check failed: ", err);
       }
     };
 
     // Fast check on mount
     const timer = setTimeout(checkAppUpdates, 1500);
+
+    // Register active download progress listener
+    let unsubscribeProgress: (() => void) | undefined;
+    const isElectron = typeof window !== "undefined" && (window as any).electronAPI !== undefined;
+    if (isElectron) {
+      unsubscribeProgress = (window as any).electronAPI.onUpdaterEvent((type: string, data: any) => {
+        if (!active) return;
+        if (type === 'download-progress') {
+          const percentVal = data && typeof data.percent === 'number' ? Math.round(data.percent) : 0;
+          setDownloadPercent(percentVal);
+        } else if (type === 'update-downloaded') {
+          setIsReadyToInstall(true);
+        } else if (type === 'error') {
+          setUpdateError(`Update failed: ${data || "Binary connection issues"}`);
+          setIsUpdating(false);
+        }
+      });
+    }
+
     return () => {
       active = false;
       clearTimeout(timer);
+      if (unsubscribeProgress) unsubscribeProgress();
     };
   }, []);
 
@@ -69,13 +87,17 @@ export default function App() {
     setUpdateError(null);
 
     try {
-      const { check } = await import("@tauri-apps/plugin-updater");
-      const { relaunch } = await import("@tauri-apps/plugin-process");
-      
-      const update = await check();
-      if (update) {
-        await update.downloadAndInstall();
-        await relaunch();
+      const isElectron = typeof window !== "undefined" && (window as any).electronAPI !== undefined;
+      if (isElectron) {
+        if (isReadyToInstall) {
+          await (window as any).electronAPI.installUpdate();
+        } else {
+          // Trigger the official Electron main process updater download
+          const result = await (window as any).electronAPI.downloadUpdate();
+          if (result && !result.success) {
+            throw new Error(result.error || "Failed to download release binaries");
+          }
+        }
       }
     } catch (err: any) {
       console.error("Auto-Updater Installation failed: ", err);
@@ -465,8 +487,8 @@ export default function App() {
 
   return (
     <div className={`flex flex-col h-screen bg-main-bg text-text-body overflow-hidden font-sans relative theme-${uiTheme} radius-${radiusStyle} density-${fontSizeStyle} ${glassMode ? "glass-backdrop-blur" : ""}`} id="applet-viewport">
-      {/* Custom integrated Titlebar for Tauri environments */}
-      <TauriTitleBar />
+      {/* Custom integrated Titlebar for Desktop Environments */}
+      <ElectronTitleBar />
 
       <div className="flex flex-1 overflow-hidden w-full relative" id="applet-body-container">
         {/* Sidebar navigation */}
@@ -570,13 +592,18 @@ export default function App() {
         </main>
       </div>
 
-      {/* Dynamic Tauri Auto-Updater UI overlay */}
+      {/* Dynamic Electron Auto-Updater UI overlay */}
       {updateInfo && updateInfo.available && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in" id="updater-modal-overlay">
           <div className="max-w-md w-full bg-card-bg border border-border-theme p-6 rounded-2xl shadow-2xl flex flex-col relative" id="updater-dialog-container">
             {(!isUpdating || updateError) && (
               <button 
-                onClick={() => setUpdateInfo(null)}
+                onClick={() => {
+                  setUpdateInfo(null);
+                  setIsUpdating(false);
+                  setIsReadyToInstall(false);
+                  setDownloadPercent(0);
+                }}
                 className="absolute top-4 right-4 text-text-muted hover:text-text-body transition cursor-pointer"
                 title="Close update dialog"
               >
@@ -593,17 +620,39 @@ export default function App() {
                   System Update
                 </span>
                 <h3 className="text-lg font-bold text-text-title font-display">
-                  {isUpdating ? `Installing Update v${updateInfo.version}` : `Update v${updateInfo.version} Available`}
+                  {isReadyToInstall 
+                    ? `Update v${updateInfo.version} Ready!` 
+                    : isUpdating 
+                      ? `Downloading Update v${updateInfo.version}` 
+                      : `Update v${updateInfo.version} Available`
+                  }
                 </h3>
               </div>
             </div>
 
             <p className="text-sm text-text-muted mb-4 leading-relaxed bg-main-bg/50 p-3 rounded-lg border border-border-theme/40 font-sans text-xs">
-              {isUpdating 
-                ? "Downloading and applying the latest changes. Please keep the app open; it will restart automatically to complete the update in a brief moment." 
-                : updateInfo.body || "A new version of the desktop app is ready to install. Click 'Install Update' below to proceed."
+              {isReadyToInstall
+                ? "The download is complete! Click 'Relaunch & Install' below to reload the workspace and apply the new platform updates instantly."
+                : isUpdating 
+                  ? "Downloading binary payload directly through the Electron Core main process. Please keep the application online." 
+                  : updateInfo.body || "A new version of the desktop app is ready to install. Click 'Install Update' below to proceed."
               }
             </p>
+
+            {isUpdating && !isReadyToInstall && (
+              <div className="mb-4">
+                <div className="flex justify-between text-[11px] text-text-muted mb-1 font-mono">
+                  <span>Transfer progress</span>
+                  <span className="font-bold text-accent-main">{downloadPercent}%</span>
+                </div>
+                <div className="w-full bg-main-bg border border-border-theme/40 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-accent-main h-full rounded-full transition-all duration-300"
+                    style={{ width: `${downloadPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             {updateError && (
               <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-xs flex items-center gap-2">
@@ -617,7 +666,12 @@ export default function App() {
                 <>
                   <button
                     type="button"
-                    onClick={() => setUpdateInfo(null)}
+                    onClick={() => {
+                      setUpdateInfo(null);
+                      setIsUpdating(false);
+                      setIsReadyToInstall(false);
+                      setDownloadPercent(0);
+                    }}
                     className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-main-bg/80 rounded-xl transition cursor-pointer"
                   >
                     Cancel
@@ -631,10 +685,19 @@ export default function App() {
                     Retry Install
                   </button>
                 </>
+              ) : isReadyToInstall ? (
+                <button
+                  type="button"
+                  onClick={handlePerformUpdate}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-505 text-white rounded-xl text-sm font-semibold transition cursor-pointer flex items-center gap-2"
+                >
+                  <RefreshCw size={14} className="animate-spin" />
+                  Relaunch & Install
+                </button>
               ) : isUpdating ? (
-                <div className="flex items-center gap-2.5 text-xs text-text-muted py-2">
+                <div className="flex items-center gap-2.5 text-xs text-text-muted py-2 bg-main-bg/40 px-3 rounded-lg border border-border-theme/20">
                   <RefreshCw size={14} className="animate-spin text-accent-main" />
-                  <span>Downloading & Installing...</span>
+                  <span>Staging installation files...</span>
                 </div>
               ) : (
                 <>

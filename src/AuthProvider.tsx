@@ -60,10 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      const isElectron = typeof window !== "undefined" && (window as any).electronAPI !== undefined;
       const isTauri = typeof window !== "undefined" && (window as any).__TAURI__ !== undefined;
-      if (isTauri) {
-        // In Tauri Desktop, popups often fail due to strict WebView window policies. 
-        // We use signInWithRedirect instead to ensure the OAuth flow redirects properly within the webview.
+      if (isTauri || isElectron) {
+        // In desktop platforms, popups often fail due to strict WebView/browser scope window policies. 
+        // We use signInWithRedirect instead to ensure the OAuth flow redirects properly within the workspace environment.
         // NOTE: Please ensure `http://localhost`, `tauri://localhost`, or `http://tauri.localhost` are added as Authorized Domains in Firebase Console.
         const { signInWithRedirect } = await import("firebase/auth");
         await signInWithRedirect(auth, provider);

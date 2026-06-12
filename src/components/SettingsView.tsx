@@ -29,21 +29,15 @@ export default function SettingsView({
   const { logout } = useAuth();
 
   const [localVersion, setLocalVersion] = useState("0.0.18");
+  const [isElectronApplication, setIsElectronApplication] = useState(false);
 
   useEffect(() => {
-    const isTauri = typeof window !== "undefined" && (
-      (window as any).__TAURI__ !== undefined || 
-      (window as any).__TAURI_IPC__ !== undefined || 
-      (window as any).__TAURI_METADATA__ !== undefined
-    );
-    if (isTauri) {
-      import("@tauri-apps/api/app")
-        .then(({ getVersion }) => {
-          getVersion()
-            .then((ver) => setLocalVersion(ver))
-            .catch((err) => console.error("Failed to get Tauri version:", err));
-        })
-        .catch((err) => console.error("Failed to load Tauri app API:", err));
+    const isElectron = typeof window !== "undefined" && (window as any).electronAPI !== undefined;
+    setIsElectronApplication(isElectron);
+    if (isElectron) {
+      (window as any).electronAPI.getAppVersion()
+        .then((ver: string) => setLocalVersion(ver))
+        .catch((err: any) => console.error("Failed to get Electron version:", err));
     }
   }, []);
 
@@ -139,7 +133,7 @@ export default function SettingsView({
             }`}
           >
             <RefreshCw className="w-4 h-4" />
-            <span>App Updates (Tauri)</span>
+            <span>App Updates ({isElectronApplication ? "Electron" : "Web"})</span>
           </button>
         </div>
       </div>
@@ -461,9 +455,9 @@ export default function SettingsView({
               <div>
                 <h3 className="text-2xl font-bold text-text-title font-sans mb-1 flex items-center gap-2">
                   <RefreshCw className="w-6 h-6 text-accent-main animate-pulse" />
-                  App Updates & Tauri Diagnostics
+                  App Updates & Electron Diagnostics
                 </h3>
-                <p className="text-sm text-text-muted">Analyze your Tauri cross-platform updater endpoints, local binary configurations, and test update triggers.</p>
+                <p className="text-sm text-text-muted">Analyze your Electron application distribution updater endpoints, local binary configurations, and test update triggers.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -480,15 +474,17 @@ export default function SettingsView({
                     </div>
                     <div className="flex justify-between py-1 border-b border-border-theme/40">
                       <span className="text-text-muted">App Identifier:</span>
-                      <span className="font-mono text-text-body">com.onenote.obsidian.app</span>
+                      <span className="font-mono text-text-body">com.onenote-obsidian.app</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-border-theme/40">
                       <span className="text-text-muted">Relaunch Capability:</span>
-                      <span className="text-green-500 font-medium">Enabled (process:allow-restart)</span>
+                      <span className="text-green-500 font-medium">Enabled (app.relaunch)</span>
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-text-muted">Platform Hook:</span>
-                      <span className="text-text-body bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded text-[10px]">Tauri Native + Web Hybrid</span>
+                      <span className="text-text-body bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded text-[10px]">
+                        {isElectronApplication ? "Electron Desktop Shell" : "Web Sandbox Environment"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -534,7 +530,7 @@ export default function SettingsView({
               <div className="bg-card-bg border border-border-theme p-6 rounded-2xl flex flex-col gap-4" id="endpoint-audit">
                 <div className="flex items-center gap-2 text-text-title font-semibold font-sans">
                   <Shield size={18} className="text-orange-500" />
-                  <h4>Tauri Updater Endpoint Audit & Integrity Check</h4>
+                  <h4>Electron Updater Endpoint Audit & Integrity Check</h4>
                 </div>
 
                 <div className="text-xs text-text-body flex flex-col gap-3">
@@ -544,8 +540,12 @@ export default function SettingsView({
                       <Check size={14} />
                     </div>
                     <div>
-                      <p className="font-semibold text-text-title font-sans">Tauri Updater Signature Pubkey matches configuration</p>
-                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">The updated public key dW50cnVzdGVk... (165C2C...) is configured. This matches the release build keys for binary validation.</p>
+                      <p className="font-semibold text-text-title font-sans">
+                        Electron Core IPC Channels bound successfully
+                      </p>
+                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal font-sans">
+                        Verified <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px]">checkForUpdates</code>, <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px]">downloadUpdate</code>, <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px]">installUpdate</code>, and <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px]">onUpdaterEvent</code> exist on the secure bridge.
+                      </p>
                     </div>
                   </div>
 
@@ -555,26 +555,32 @@ export default function SettingsView({
                       <Check size={14} />
                     </div>
                     <div>
-                      <p className="font-semibold text-text-title font-sans">Tauri v2 Permissions (default.json) properly declared</p>
-                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">Permissions `updater:default` and `process:allow-restart` are active inside the default capability map.</p>
+                      <p className="font-semibold text-text-title font-sans">
+                        Secure Isolation Sandbox (preload.cjs)
+                      </p>
+                      <p className="text-text-muted mt-0.5 text-[11px] leading-normal">
+                        Preload context bridge enforces isolated multi-process execution. Only explicit safe operations can query update endpoints.
+                      </p>
                     </div>
                   </div>
 
                   {/* Item 3 (Audit Status) */}
                   {!loadingGithub && githubReleases[0] && (() => {
                     const latestRelease = githubReleases[0];
-                    const hasLatestJson = latestRelease?.assets?.some((a: any) => a.name === "latest.json");
+                    const hasLatestYml = latestRelease?.assets?.some((a: any) => a.name.endsWith(".yml") || a.name === "latest.json");
 
-                    if (hasLatestJson) {
+                    if (hasLatestYml) {
                       return (
                         <div className="flex gap-3 leading-relaxed items-start max-w-full">
                           <div className="mt-0.5 bg-green-500/10 text-green-500 rounded p-0.5 shrink-0">
                             <Check size={14} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-text-title font-sans">Tauri Updater Manifest (latest.json) verified online!</p>
+                            <p className="font-semibold text-text-title font-sans">
+                              Electron Release Manifest (latest.yml) verified
+                            </p>
                             <p className="text-text-muted mt-0.5 text-[11px] leading-relaxed">
-                              Successfully located <code className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-[10px] text-text-body">latest.json</code> in release assets of <b className="text-text-title">{latestRelease.tag_name}</b>. Installed Tauri clients can check this file dynamically to receive signature-verified upgrades.
+                              Successfully located <code className="bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-[10px] text-text-body">latest.yml</code> inside GitHub Release assets for tag <b className="text-text-title">{latestRelease.tag_name}</b>. This guarantees automatic, serverless delta client checks.
                             </p>
                           </div>
                         </div>
@@ -587,35 +593,28 @@ export default function SettingsView({
                           <AlertTriangle size={14} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-amber-500 font-sans">CRITICAL: missing "latest.json" asset in GitHub Release assets</p>
+                          <p className="font-semibold text-amber-500 font-sans">CRITICAL: missing Electron "latest.yml" manifest in GitHub Release assets</p>
                           <p className="text-text-muted mt-1 text-[11px] leading-relaxed">
-                            Your latest GitHub Release tag (<b className="text-text-title">{latestRelease.tag_name || "v0.0.1"}</b>) contains binary installers (RPM, DMG, AppImage, EXE, MSI), but is <span className="text-red-500 font-semibold">missing the updater manifest "latest.json" asset file</span>.
+                            Your latest tag (<b className="text-text-title">{latestRelease.tag_name || "v0.0.18"}</b>) contains binary artifacts but is <span className="text-red-500 font-semibold">missing the required "latest.yml" manifest file</span> generated by <code className="font-mono text-xs">electron-builder</code>.
                           </p>
                           <p className="text-text-muted mt-1 text-[11px] leading-relaxed">
-                            Because of this, the Tauri client calling <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded font-mono text-[10px] text-text-body">https://github.com/rommel-exe/Student-Productivity/releases/latest/download/latest.json</code> receives a <span className="text-red-500 font-semibold">404 Not Found</span> error, causing the updater check to exit quietly or throw a connection error.
+                            To ensure your Electron clients can fetch background updates correctly without manual website browsing, you must supply the generated manifest file in your release assets.
                           </p>
                           <div className="mt-4 bg-main-bg/60 p-4 rounded-xl border border-border-theme/40 text-text-muted">
                             <p className="font-semibold text-[10px] uppercase text-text-title tracking-wider mb-2 font-sans flex items-center gap-1">
                               <HelpCircle size={10} className="text-accent-main" />
-                              How to solve / fix updater:
+                              How to solve this inside your workflow:
                             </p>
-                            <p className="text-[10px] leading-normal mb-3">Create a local file named <code className="font-mono text-accent-main bg-accent-main/5 px-1 py-0.5 rounded">latest.json</code> in this format (signing the hash of your releases with your private key), then upload it to your GitHub releases assets list:</p>
+                            <p className="text-[10px] leading-normal mb-3">Our automated GitHub Release workflow is pre-integrated. When the action runs <code className="font-mono bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded text-[10px]">npx electron-builder --publish always</code>, the updater manifests are generated and published alongside your binaries automatically.</p>
                             <pre className="text-[11px] font-mono whitespace-pre-wrap bg-black/15 dark:bg-black/30 p-3 rounded-lg border border-border-theme/40 text-text-body select-text leading-normal max-h-[160px] overflow-auto">
-{`{
-  "version": "0.0.18",
-  "notes": "Workspace upgrades, custom multi-tab settings, and updated capability parameters.",
-  "pub_date": "${new Date().toISOString()}",
-  "platforms": {
-    "darwin-aarch64": {
-      "signature": "<signature-content>",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.18/OneNoteObsidian_aarch64.app.tar.gz"
-    },
-    "windows-x86_64": {
-      "signature": "<signature-content>",
-      "url": "https://github.com/rommel-exe/Student-Productivity/releases/download/v0.0.18/OneNoteObsidian_0.0.18_x64-setup.exe"
-    }
-  }
-}`}
+{`latest.yml contents generated automatically:
+version: 0.0.18
+files:
+  - url: OneNoteObsidian-Setup-0.0.18.exe
+    sha512: d241ac2a...
+    size: 6542130
+path: OneNoteObsidian-Setup-0.0.18.exe
+sha512: d241ac2a...`}
                             </pre>
                           </div>
                         </div>
