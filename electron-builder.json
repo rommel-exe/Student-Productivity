@@ -18,6 +18,7 @@
     "target": ["nsis", "zip"]
   },
   "linux": {
-    "target": ["AppImage", "deb"]
+    "target": ["AppImage", "deb"],
+    "maintainer": "rommel-exe <rommel@example.com>"
   }
 }
