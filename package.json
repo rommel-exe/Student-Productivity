@@ -3,7 +3,10 @@
   "private": true,
   "version": "0.0.19",
   "description": "OneNoteObsidian Desktop Studio for Student Productivity",
-  "author": "rommel-exe <rommel@example.com>",
+  "author": {
+    "name": "rommel-exe",
+    "email": "rommel@example.com"
+  },
   "homepage": "https://github.com/rommel-exe/Student-Productivity",
   "repository": {
     "type": "git",

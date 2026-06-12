@@ -36,11 +36,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npx electron-builder --mac --publish always
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npx electron-builder --win --publish always
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PUBLISH_OPTION="never"
           else
-            npx electron-builder --linux --publish always
+            PUBLISH_OPTION="always"
+          fi
+
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npx electron-builder --mac --publish $PUBLISH_OPTION
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npx electron-builder --win --publish $PUBLISH_OPTION
+          else
+            npx electron-builder --linux --publish $PUBLISH_OPTION
           fi
         shell: bash

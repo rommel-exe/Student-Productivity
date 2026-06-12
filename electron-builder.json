@@ -20,5 +20,13 @@
   "linux": {
     "target": ["AppImage", "deb"],
     "maintainer": "rommel-exe <rommel@example.com>"
-  }
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "rommel-exe",
+      "repo": "Student-Productivity",
+      "releaseType": "release"
+    }
+  ]
 }
