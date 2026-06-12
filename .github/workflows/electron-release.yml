@@ -73,9 +73,55 @@ jobs:
           retention-days: 7
 
   # ─── Publish (sequential — release must exist before others upload) ───
+  determine-release:
+    name: Determine Release & Auto-Tag
+    runs-on: ubuntu-latest
+    needs: check
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+    outputs:
+      is_new_release: ${{ steps.tag_status.outputs.is_new_release }}
+      version: ${{ steps.tag_status.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version and tags
+        id: tag_status
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          TAG_NAME="v$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Check if we are running on a tag push
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "Triggered by tag push. Proceeding with release."
+            echo "is_new_release=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/main ]]; then
+            # We are on main branch push. Check if tag already exists on remote.
+            if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+              echo "Tag $TAG_NAME already exists on remote. No new release needed for this push."
+              echo "is_new_release=false" >> $GITHUB_OUTPUT
+            else
+              echo "Tag $TAG_NAME does not exist. Creating tag and initiating release."
+              git config --global user.name "github-actions[bot]"
+              git config --global user.email "github-actions[bot]@users.noreply.github.com"
+              git tag "$TAG_NAME"
+              git push origin "$TAG_NAME"
+              echo "is_new_release=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Skipping release for ref ${{ github.ref }}"
+            echo "is_new_release=false" >> $GITHUB_OUTPUT
+          fi
+
   publish-linux:
     name: Publish Linux
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: determine-release
+    if: needs.determine-release.outputs.is_new_release == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -97,8 +143,8 @@ jobs:
 
   publish-macos:
     name: Publish macOS
-    needs: publish-linux
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [determine-release, publish-linux]
+    if: needs.determine-release.outputs.is_new_release == 'true'
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
@@ -120,8 +166,8 @@ jobs:
 
   publish-windows:
     name: Publish Windows
-    needs: publish-linux
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [determine-release, publish-linux]
+    if: needs.determine-release.outputs.is_new_release == 'true'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
