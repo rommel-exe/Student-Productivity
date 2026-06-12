@@ -127,6 +127,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/v${{ needs.determine-release.outputs.version }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -140,6 +142,7 @@ jobs:
         run: npx electron-builder --linux --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: refs/tags/v${{ needs.determine-release.outputs.version }}
 
   publish-macos:
     name: Publish macOS
@@ -150,6 +153,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/v${{ needs.determine-release.outputs.version }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -163,6 +168,7 @@ jobs:
         run: npx electron-builder --mac --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: refs/tags/v${{ needs.determine-release.outputs.version }}
 
   publish-windows:
     name: Publish Windows
@@ -173,6 +179,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/v${{ needs.determine-release.outputs.version }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -186,3 +194,4 @@ jobs:
         run: npx electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: refs/tags/v${{ needs.determine-release.outputs.version }}
